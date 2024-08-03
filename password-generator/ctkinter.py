@@ -1,56 +1,97 @@
 # An interface for the password generator using Custom Tkinter
 
 import tkinter as tk
-import customtkinter as ctk
+import customtkinter
 from tkinter import messagebox
 from tkinter import simpledialog
 import random
 import string
 import os
+from app import generate_password, generate_passphrase
 
 dictionnary = os.path.join(os.path.dirname(__file__), 'words.txt')
 
-def generate_password(length: int) -> str:
-    characters = string.ascii_letters + string.digits + string.punctuation
-    password = ''.join(random.choice(characters) for i in range(length))
-    return password
+app = customtkinter.CTk()
+app.geometry("400x300")
+app.title("Password Generator")
 
-def generate_passphrase(words: int) -> str:
-    # Ouvrir le dictionnaire de mots, ajouter un chiffre aléatoire et un tiret entre chaque mot
-    if words < 4:
-        messagebox.showwarning("Warning", "Passphrases should be at least 4 words long for security reasons.")
+
+
+
+
+def change_view_password():
+    # Wipe the screen and display the password generation form
+    title.pack_forget()
+    password_button.pack_forget()
+    passphrase_button.pack_forget()
+    length_label = customtkinter.CTkLabel(app, text="Enter the length of the password:")
+    length_label.pack()
+    length_entry = customtkinter.CTkEntry(app)
+    length_entry.pack()
+    generate_button = customtkinter.CTkButton(app, text="Generate", command=lambda: generate_password_view(length_entry.get()))
+    generate_button.pack()
+    
+def change_view_passphrase():
+    # Wipe the screen and display the passphrase generation form
+    title.pack_forget()
+    password_button.pack_forget()
+    passphrase_button.pack_forget()
+    words_label = customtkinter.CTkLabel(app, text="Enter the number of words in the passphrase:")
+    words_label.pack()
+    words_entry = customtkinter.CTkEntry(app)
+    words_entry.pack()
+    generate_button = customtkinter.CTkButton(app, text="Generate", command=lambda: generate_passphrase_view(words_entry.get()))
+    generate_button.pack()
+
+def classic_view():
+    # Wipe the screen and display the classic interface
+    title.pack()
+    password_button.pack()
+    passphrase_button.pack()
+
+def generate_password_view(length):
+    try:
+        length = int(length)
+    except ValueError:
+        messagebox.showerror("Invalid input", "Please enter a valid number.")
         return
-    with open(dictionnary, 'r') as file:
-        word_list = file.readlines()
-    passphrase = ''
-    for i in range(words):
-        passphrase += random.choice(word_list).strip() + str(random.randint(0, 9)) + '-'
-    return passphrase.strip()
+    password = generate_password(length)
+    messagebox.showinfo("Password generated and copied to clipboard", f"Your password is: {password}")
+    hide_current_view()
+    copy_password(password)
+    classic_view()
 
-def generate_password_callback():
-    length = simpledialog.askinteger("Password Length", "Enter the length of the password:")
-    if length:
-        password = generate_password(length)
-        messagebox.showinfo("Password", f"Your password is: {password}")
-    
-def generate_passphrase_callback():
-    words = simpledialog.askinteger("Passphrase Words", "Enter the number of words in the passphrase:")
-    if words:
-        passphrase = generate_passphrase(words)
-        messagebox.showinfo("Passphrase", f"Your passphrase is: {passphrase}")
+def hide_current_view():
+    for widget in app.winfo_children():
+        widget.pack_forget()
 
-def main():
-    root = tk.Tk()
-    root.title("Password Generator")
-    
-    password_button = ctk.CTkButton(root, text="Generate a random password", command=generate_password_callback)
-    password_button.pack(pady=10)
+def generate_passphrase_view(words):
+    try:
+        words = int(words)
+    except ValueError:
+        messagebox.showerror("Invalid input", "Please enter a valid number.")
+        return
+    passphrase = generate_passphrase(words)
+    messagebox.showinfo("Passphrase generated and copied to clipboard", f"Your passphrase is: {passphrase}")
+    hide_current_view()
+    copy_passphrase(passphrase)
+    classic_view()
 
-    passphrase_button = ctk.CTkButton(root, text="Generate a passphrase", command=generate_passphrase_callback)
-    passphrase_button.pack(pady=10)
-    
-    root.mainloop()
+def copy_passphrase(passphrase):
+    app.clipboard_clear()
+    app.clipboard_append(passphrase)
 
-if __name__ == '__main__':
-    main()
-    
+def copy_password(password):
+    app.clipboard_clear()
+    app.clipboard_append(password)
+
+title = customtkinter.CTkLabel(app, text="Welcome to the Password Generator!", font=("Arial", 16))
+title.pack()
+
+password_button = customtkinter.CTkButton(app, text="Generate a random password", command=change_view_password)
+password_button.pack()
+
+passphrase_button = customtkinter.CTkButton(app, text="Generate a passphrase", command=change_view_passphrase)
+passphrase_button.pack()
+
+app.mainloop()
