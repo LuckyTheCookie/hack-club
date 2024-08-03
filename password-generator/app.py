@@ -14,9 +14,6 @@ def generate_password(length: int) -> str:
 
 def generate_passphrase(words: int) -> str:
     # Ouvrir le dictionnaire de mots, ajouter un chiffre aléatoire et un tiret entre chaque mot
-    if words < 4:
-        print("Warning: Passphrases should be at least 4 words long for security reasons.")
-        return
     with open(dictionnary, 'r') as file:
         word_list = file.readlines()
     passphrase = ''
